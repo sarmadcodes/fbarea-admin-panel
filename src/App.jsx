@@ -9,6 +9,9 @@ import Payments from './pages/Payments';
 import VehicleRequests from './pages/VehicleRequests';
 import Announcements from './pages/Announcements';
 import DigitalCards from './pages/DigitalCards';
+import GuestRequests from './pages/GuestRequests';
+import Deals from './pages/Deals';
+import DealCategories from './pages/DealCategories';
 import Layout from './components/Layout';
 
 function App() {
@@ -30,6 +33,9 @@ function App() {
             <Route path="vehicle-requests" element={<VehicleRequests />} />
             <Route path="announcements" element={<Announcements />} />
             <Route path="digital-cards" element={<DigitalCards />} />
+            <Route path="guest-requests" element={<GuestRequests />} />
+            <Route path="deals" element={<Deals />} />
+            <Route path="deal-categories" element={<DealCategories />} />
           </Route>
         </Routes>
       </BrowserRouter>

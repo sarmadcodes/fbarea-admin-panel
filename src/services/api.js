@@ -1,7 +1,7 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_BASE_URL = 'https://fbareaapi.systopos.com/api';
+const API_BASE_URL = 'http://api.fbareaadmin.cloud/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -16,6 +16,12 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Don't set Content-Type for FormData - let browser set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     return config;
   },
   (error) => {
@@ -99,5 +105,49 @@ export const suspendDigitalCard = (id, data) => api.put(`/admin/digital-cards/${
 export const reactivateDigitalCard = (id, data) => api.put(`/admin/digital-cards/${id}/reactivate`, data);
 export const deleteDigitalCard = (id) => api.delete(`/admin/digital-cards/${id}`);
 export const getDigitalCardStats = () => api.get('/admin/digital-cards/stats/overview');
+
+// Guest Requests
+export const getGuestRequests = (params) => api.get('/admin/guest-requests', { params });
+export const getGuestRequestById = (id) => api.get(`/admin/guest-requests/${id}`);
+export const approveGuestRequest = (id) => api.put(`/admin/guest-requests/${id}/approve`);
+export const rejectGuestRequest = (id, data) => api.put(`/admin/guest-requests/${id}/reject`, data);
+export const deleteGuestRequest = (id) => api.delete(`/admin/guest-requests/${id}`);
+export const getGuestRequestStats = () => api.get('/admin/guest-requests/stats');
+
+// ========================================
+// DEALS & DISCOUNTS
+// ========================================
+
+// Deals
+export const getDeals = (params) => api.get('/admin/deals', { params });
+export const getDealById = (id) => api.get(`/admin/deals/${id}`);
+export const createDeal = (data) => {
+  console.log('📤 [API] Creating deal with FormData:', data instanceof FormData);
+  return api.post('/admin/deals', data);
+};
+export const updateDeal = (id, data) => {
+  console.log('📤 [API] Updating deal with FormData:', data instanceof FormData);
+  return api.put(`/admin/deals/${id}`, data);
+};
+export const deleteDeal = (id) => api.delete(`/admin/deals/${id}`);
+export const toggleDealFeatured = (id) => api.patch(`/admin/deals/${id}/toggle-featured`);
+export const toggleDealActive = (id) => api.patch(`/admin/deals/${id}/toggle-active`);
+export const getDealStats = () => api.get('/admin/deals/stats');
+
+// Deal Categories
+export const getDealCategories = (params) => api.get('/admin/deal-categories', { params });
+export const getDealCategoryById = (id) => api.get(`/admin/deal-categories/${id}`);
+export const createDealCategory = (data) => api.post('/admin/deal-categories', data);
+export const updateDealCategory = (id, data) => api.put(`/admin/deal-categories/${id}`, data);
+export const deleteDealCategory = (id) => api.delete(`/admin/deal-categories/${id}`);
+export const toggleCategoryActive = (id) => api.patch(`/admin/deal-categories/${id}/toggle-active`);
+
+// Coupons
+export const getCouponsByDeal = (dealId) => api.get(`/admin/deals/${dealId}/coupons`);
+export const getCouponById = (id) => api.get(`/admin/deals/coupons/${id}`);
+export const createCoupon = (dealId, data) => api.post(`/admin/deals/${dealId}/coupons`, data);
+export const updateCoupon = (id, data) => api.put(`/admin/deals/coupons/${id}`, data);
+export const deleteCoupon = (id) => api.delete(`/admin/deals/coupons/${id}`);
+export const toggleCouponActive = (id) => api.patch(`/admin/deals/coupons/${id}/toggle-active`);
 
 export default api;

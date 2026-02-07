@@ -1,7 +1,7 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { getUsers, getComplaints, getPayments, getVehicleRequests, getDigitalCardStats } from '../services/api';
+import { getUsers, getComplaints, getPayments, getVehicleRequests, getDigitalCardStats, getGuestRequestStats } from '../services/api';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const navigate = useNavigate();
@@ -22,6 +22,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     pendingCards: 0,
     approvedCards: 0,
     suspendedCards: 0,
+    pendingGuests: 0,
+    approvedGuests: 0,
+    rejectedGuests: 0,
+    expiredGuests: 0,
   });
   const [openDropdown, setOpenDropdown] = useState(null);
 
@@ -44,17 +48,22 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       setOpenDropdown('vehicle-requests');
     } else if (path.includes('/digital-cards')) {
       setOpenDropdown('digital-cards');
+    } else if (path.includes('/guest-requests')) {
+      setOpenDropdown('guest-requests');
+    } else if (path.includes('/deal')) {
+      setOpenDropdown('deals');
     }
   }, [location.pathname]);
 
   const fetchStats = async () => {
     try {
-      const [users, complaints, payments, vehicles, cards] = await Promise.all([
+      const [users, complaints, payments, vehicles, cards, guestRequests] = await Promise.all([
         getUsers({ status: 'all' }).catch(() => ({ data: { data: [] } })),
         getComplaints({ status: 'all' }).catch(() => ({ data: { data: [] } })),
         getPayments({ status: 'all' }).catch(() => ({ data: { data: [] } })),
         getVehicleRequests({ status: 'all' }).catch(() => ({ data: { data: [] } })),
         getDigitalCardStats().catch(() => ({ data: { data: { pending: 0, approved: 0, suspended: 0 } } })),
+        getGuestRequestStats().catch(() => ({ data: { data: { pending: 0, approved: 0, rejected: 0, expired: 0 } } })),
       ]);
 
       const allUsers = users.data.data || [];
@@ -62,6 +71,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       const allPayments = payments.data.data || [];
       const allVehicles = vehicles.data.data || [];
       const cardStats = cards.data.data || {};
+      const guestStats = guestRequests.data.data || {};
 
       setStats({
         pendingUsers: allUsers.filter(u => u.accountStatus === 'pending').length,
@@ -79,6 +89,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         pendingCards: cardStats.pending || 0,
         approvedCards: cardStats.approved || 0,
         suspendedCards: cardStats.suspended || 0,
+        pendingGuests: guestStats.pending || 0,
+        approvedGuests: guestStats.approved || 0,
+        rejectedGuests: guestStats.rejected || 0,
+        expiredGuests: guestStats.expired || 0,
       });
     } catch (error) {
       console.error('Failed to fetch stats:', error);
@@ -148,9 +162,30 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       ],
     },
     {
+      id: 'guest-requests',
+      label: 'Guest Requests',
+      hasDropdown: true,
+      items: [
+        { label: 'All Requests', path: '/guest-requests?tab=all', count: 0 },
+        { label: 'Pending', path: '/guest-requests?tab=pending', count: stats.pendingGuests },
+        { label: 'Approved', path: '/guest-requests?tab=approved', count: stats.approvedGuests },
+        { label: 'Rejected', path: '/guest-requests?tab=rejected', count: stats.rejectedGuests },
+        { label: 'Expired', path: '/guest-requests?tab=expired', count: stats.expiredGuests },
+      ],
+    },
+    {
       id: 'announcements',
       label: 'Announcements',
       path: '/announcements',
+    },
+    {
+      id: 'deals',
+      label: 'Deals & Discounts',
+      hasDropdown: true,
+      items: [
+        { label: 'Manage Deals', path: '/deals?tab=all', count: 0 },
+        { label: 'Categories', path: '/deal-categories', count: 0 },
+      ],
     },
     {
       id: 'vehicles',
